@@ -8,13 +8,15 @@ import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.activity.viewmodel.compose.viewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.animation.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -29,14 +31,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.app.ActivityCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.example.data.model.UserProfile
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import com.example.data.model.*
 import com.example.ui.components.*
 import com.example.ui.screens.*
-import com.example.ui.theme.ElectricTeal
-import com.example.ui.theme.MidnightBlue
-import com.example.ui.theme.MyApplicationTheme
-import com.example.ui.theme.PureVoid
-import com.example.ui.theme.SlateCard
+import com.example.ui.theme.*
 import com.example.ui.viewmodel.CartoonViewModel
 
 class MainActivity : ComponentActivity() {
@@ -89,7 +89,7 @@ fun AppContent(viewModel: CartoonViewModel) {
     val context = LocalContext.current
 
     // Base Shows lists for Hero highlights
-    val baseShowsList = remember { viewModel.getShowsList() ?: emptyList() } // fallback matching list
+    val baseShowsList = remember<List<CartoonShow>> { viewModel.getShowsList() ?: emptyList() } // fallback matching list
 
     // --- Pad Lock dialog trigger ---
     if (isPinScreenActive && currentProfile != null) {
@@ -175,7 +175,7 @@ fun AppContent(viewModel: CartoonViewModel) {
                         activeProfile = currentProfile,
                         recentWatchList = watchHistory,
                         searchQuery = searchQuery,
-                        onSearchQueryChange = { q -> viewModel.setSearchQuery(it = q) },
+                        onSearchQueryChange = { q -> viewModel.setSearchQuery(q) },
                         selectedCategory = selectedCategory,
                         onCategorySelected = { cat -> viewModel.setCategory(cat) },
                         onShowSelected = { s -> viewModel.selectShow(s) },
@@ -491,7 +491,7 @@ fun BottomBarNavigation(
 private fun CartoonViewModel.getShowsList(): List<CartoonShow>? {
     return try {
         val fields = this::class.java.getDeclaredField("_showsList").apply { isAccessible = true }
-        (fields.get(this) as MutableStateFlow<List<CartoonShow>>).value
+        (fields.get(this) as kotlinx.coroutines.flow.MutableStateFlow<*>).value as? List<CartoonShow>
     } catch (e: Exception) {
         // Fallback default list construction
         com.example.data.model.CartoonData.getShows()

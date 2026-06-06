@@ -273,7 +273,19 @@ class CartoonViewModel(application: Application) : AndroidViewModel(application)
         }
     }
 
+    fun deleteWatchHistoryItem(profileId: Int, episodeUrl: String) {
+        viewModelScope.launch {
+            repository.deleteWatchHistoryItem(profileId, episodeUrl)
+        }
+    }
+
     // --- Simulated Download Engine ---
+    fun deleteDownload(episodeUrl: String) {
+        viewModelScope.launch {
+            repository.deleteDownload(episodeUrl)
+        }
+    }
+
     fun toggleEpisodeDownload(episode: Episode) {
         val profile = _currentProfile.value ?: return
         val show = _selectedShow.value ?: return

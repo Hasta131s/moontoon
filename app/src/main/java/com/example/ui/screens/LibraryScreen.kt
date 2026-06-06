@@ -28,10 +28,9 @@ import coil.compose.AsyncImage
 import com.example.data.model.CartoonShow
 import com.example.data.model.FavoriteShow
 import com.example.data.model.WatchHistory
-import com.example.ui.theme.ElectricTeal
-import com.example.ui.theme.HotPink
-import com.example.ui.theme.MidnightBlue
-import com.example.ui.theme.SlateCard
+import com.example.ui.theme.*
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.filled.Close
 
 @Composable
 fun LibraryScreen(

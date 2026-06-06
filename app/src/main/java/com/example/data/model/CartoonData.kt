@@ -193,6 +193,73 @@ object CartoonData {
                 Episode("Tehlikeli Uzaylı", "https://ti-content-global.cdn.turner.com/PROD-APAC/C_PPG160_0XXXX0446_REC_TR/848ad2b0-076b-43ac-b996-a9e92e10df9b/PCTV.m3u8", "https://ti-content-global.cdn.turner.com/PROD-APAC/C_PPG160_0XXXX0446_REC_TR/C_PPG160_0XXXX0446_REC_TR_VIDSCREENSHOT.jpg", 1, 1),
                 Episode("Bliss Geri Dönüyor", "https://ti-content-global.cdn.turner.com/PROD-APAC/C_PPG160_0XXXX0445_REC_TR/fae28d74-06f3-4a65-9db2-2b6c91efc3e2/PCTV.m3u8", "https://ti-content-global.cdn.turner.com/PROD-APAC/C_PPG160_0XXXX0445_REC_TR/C_PPG160_0XXXX0445_REC_TR_VIDSCREENSHOT.jpg", 1, 2)
             )
+        ),
+        CartoonShow(
+            title = "Elma ve Soğan",
+            searchKeyword = "Elma ve Sogan",
+            genres = listOf("#komedi", "#macera", "#yemek"),
+            description = "Büyük şehre yeni taşınan ve burada birbirleriyle dost olan Elma ve Soğan'ın absürt ve eğlence dolu modern yaşam maceraları.",
+            rating = "7.8",
+            years = "2018-2021",
+            seasonsCount = 2,
+            episodes = listOf(
+                Episode("Su", "https://ti-content-global.cdn.turner.com/PROD-APAC/C_APPONI_0XXXX0242_REC_TR/ba3f9d15-b0ef-4839-9102-e1e4f8545b5e/PCTV.m3u8", "https://ti-content-global.cdn.turner.com/PROD-APAC/C_APPONI_0XXXX0242_REC_TR/C_APPONI_0XXXX0242_REC_TR_VIDSCREENSHOT.jpg", 1, 1),
+                Episode("Uyku", "https://ti-content-global.cdn.turner.com/PROD-APAC/C_APPONI_0XXXX0241_REC_TR/7667d2b8-80b2-4462-800b-79864bbeadaa/PCTV.m3u8", "https://ti-content-global.cdn.turner.com/PROD-APAC/C_APPONI_0XXXX0241_REC_TR/C_APPONI_0XXXX0241_REC_TR_VIDSCREENSHOT.jpg", 1, 2),
+                Episode("Seçim Zamanı", "https://ti-content-global.cdn.turner.com/PROD-APAC/C_APPONI_01039914_MEI_TUR/15f2cf9a-4262-43ac-a3b0-621d19dee20e/PCTV.m3u8", "https://ti-content-global.cdn.turner.com/PROD-APAC/C_APPONI_01039914_MEI_TUR/C_APPONI_01039914_MEI_TUR_VIDSCREENSHOT.jpg", 1, 3)
+            )
+        ),
+        CartoonShow(
+            title = "Kulak Jack (Flapjack)",
+            searchKeyword = "Kulak Jack",
+            genres = listOf("#klasik", "#macera", "#komedi"),
+            description = "Kibar bir çocuk olan Flapjack ve huysuz korsan Kaptan Yosun'un konuşan balina Bubbie'nin ağzında yaşayıp Şeker Adası'nı arama maceraları.",
+            rating = "7.7",
+            years = "2008-2010",
+            seasonsCount = 3,
+            episodes = listOf(
+                Episode("Sardalya Adası Canavarı", "https://ti-content-global.cdn.turner.com/PROD-APAC/C_FLAPJA_0XXXX0370_REC_TR/5dbb7647-5edd-469c-8f59-18b7f9c924e0/PCTV.m3u8", "https://ti-content-global.cdn.turner.com/PROD-APAC/C_FLAPJA_0XXXX0370_REC_TR/C_FLAPJA_0XXXX0370_REC_TR_VIDSCREENSHOT.jpg", 1, 1),
+                Episode("Şeker Kağıdı", "https://ti-content-global.cdn.turner.com/PROD-APAC/C_FLAPJA_0XXXX0371_REC_TR/96337535-23c5-459b-a14b-026b35c6f6aa/PCTV.m3u8", "https://ti-content-global.cdn.turner.com/PROD-APAC/C_FLAPJA_0XXXX0371_REC_TR/C_FLAPJA_0XXXX0371_REC_TR_VIDSCREENSHOT.jpg", 1, 2),
+                Episode("Uçan Gemi", "https://ti-content-global.cdn.turner.com/PROD-APAC/C_FLAPJA_0XXXX0372_REC_TR/fee98a0a-a2b0-4d21-bef2-2a3af2f12705/PCTV.m3u8", "https://ti-content-global.cdn.turner.com/PROD-APAC/C_FLAPJA_0XXXX0372_REC_TR/C_FLAPJA_0XXXX0372_REC_TR_VIDSCREENSHOT.jpg", 1, 3)
+            )
+        ),
+        CartoonShow(
+            title = "Uncle Grandpa",
+            searchKeyword = "Uncle Grandpa",
+            genres = listOf("#komedi", "#absürt", "#aile"),
+            description = "Dünyadaki herkesin büyük amcası ve büyükbabası olan Uncle Grandpa'nın ve arkadaşlarının sihirli fütüristik karavan maceraları.",
+            rating = "5.4",
+            years = "2013-2017",
+            seasonsCount = 5,
+            episodes = listOf(
+                Episode("Bilgisayar", "https://ti-content-global.cdn.turner.com/PROD-APAC/C_UNCGPA_0XXXX0546_REC_TR/06114206-fdfa-46ec-a9d9-182fb144a4a6/PCTV.m3u8", "https://ti-content-global.cdn.turner.com/PROD-APAC/C_UNCGPA_0XXXX0546_REC_TR/C_UNCGPA_0XXXX0546_REC_TR_VIDSCREENSHOT.jpg", 1, 1),
+                Episode("Çizgifilm Fabrikası", "https://ti-content-global.cdn.turner.com/PROD-APAC/C_UNCGPA_0XXXX0545_REC_TR/d54d3880-ec25-4432-a30f-3d0c7a2bd2a9/PCTV.m3u8", "https://ti-content-global.cdn.turner.com/PROD-APAC/C_UNCGPA_0XXXX0545_REC_TR/C_UNCGPA_0XXXX0545_REC_TR_VIDSCREENSHOT.jpg", 1, 2)
+            )
+        ),
+        CartoonShow(
+            title = "Dexter'ın Laboratuvarı",
+            searchKeyword = "Dexterin Laboratuari",
+            genres = listOf("#klasik", "#bilim", "#komedi"),
+            description = "Dahi çocuk Dexter'ın odasındaki gizli devasa laboratuvarda yaptığı deneyler ve onu sürekli rahatsız eden ablası Dee Dee ile mücadelesi.",
+            rating = "7.9",
+            years = "1996-2003",
+            seasonsCount = 4,
+            episodes = listOf(
+                Episode("Dexter'ın Rakibi", "https://ti-content-global.cdn.turner.com/PROD-APAC/C_DEXTER_01003827_MEI_TUR/303e1c36-d949-4ed0-834c-d80e1e336cc6/PCTV.m3u8", "https://ti-content-global.cdn.turner.com/PROD-APAC/C_DEXTER_01003827_MEI_TUR/C_DEXTER_01003827_MEI_TUR_VIDSCREENSHOT.jpg", 1, 1),
+                Episode("Zaman Yolculuğu", "https://ti-content-global.cdn.turner.com/PROD-APAC/C_DEXTER_0XXXX0223_REC_TR/1a2cdb6a-5d96-4641-b522-2c01f57dc813/PCTV.m3u8", "https://ti-content-global.cdn.turner.com/PROD-APAC/C_DEXTER_0XXXX0223_REC_TR/C_DEXTER_0XXXX0223_REC_TR_VIDSCREENSHOT.jpg", 1, 2)
+            )
+        ),
+        CartoonShow(
+            title = "Foster'ın Hayali Dostlar Mekanı",
+            searchKeyword = "Foster",
+            genres = listOf("#klasik", "#hayali", "#aile"),
+            description = "Sekiz yaşındaki Mac'in hayali arkadaşı Bloo ile birlikte terkedilmiş ya da evlat edinilmeyi bekleyen tüm hayali canlıların kaldığı Foster's evindeki maceraları.",
+            rating = "7.6",
+            years = "2004-2009",
+            seasonsCount = 6,
+            episodes = listOf(
+                Episode("Karalama Belası", "https://ti-content-global.cdn.turner.com/PROD-APAC/C_FOSTER_01015807_MEI_TUR/ae282861-4c44-4548-b6b1-2a4f43bbbe8a/PCTV.m3u8", "https://ti-content-global.cdn.turner.com/PROD-APAC/C_FOSTER_01015807_MEI_TUR/C_FOSTER_01015807_MEI_TUR_VIDSCREENSHOT.jpg", 1, 1),
+                Episode("Blooooo'nun Korku Evi", "https://ti-content-global.cdn.turner.com/PROD-APAC/C_FOSTER_01013678_MEI_TUR/ab89961d-2916-4f34-8404-16c6b374ffdc/PCTV.m3u8", "https://ti-content-global.cdn.turner.com/PROD-APAC/C_FOSTER_01013678_MEI_TUR/C_FOSTER_01013678_MEI_TUR_VIDSCREENSHOT.jpg", 1, 2)
+            )
         )
     )
 }

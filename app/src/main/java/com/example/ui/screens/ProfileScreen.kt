@@ -2,6 +2,7 @@ package com.example.ui.screens
 
 import androidx.compose.animation.*
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -178,10 +179,12 @@ fun ProfileScreen(
                                     .clip(CircleShape)
                                     .background(pair.second)
                                     .clickable { selectedAvatarIndex = index }
-                                    .border(
-                                        width = if (selectedAvatarIndex == index) 3.dp else 0.dp,
-                                        color = Color.White,
-                                        shape = CircleShape
+                                    .then(
+                                        if (selectedAvatarIndex == index) {
+                                            Modifier.border(3.dp, Color.White, CircleShape)
+                                        } else {
+                                            Modifier
+                                        }
                                     )
                             )
                         }

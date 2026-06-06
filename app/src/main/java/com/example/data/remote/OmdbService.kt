@@ -2,7 +2,6 @@ package com.example.data.remote
 
 import com.example.data.model.OmdbResponse
 import com.squareup.moshi.Moshi
-import com.squareup.moshi.kotlin.reflect.MoshiKotlinJsonAdapterFactory
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
@@ -30,7 +29,6 @@ interface OmdbService {
                 .build()
 
             val moshi = Moshi.Builder()
-                .addLast(MoshiKotlinJsonAdapterFactory())
                 .build()
 
             return Retrofit.Builder()

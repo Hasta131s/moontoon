@@ -47,8 +47,8 @@ fun CustomPlayer(
     val context = LocalContext.current
     var isControlsVisible by remember { mutableStateOf(true) }
     var isPlaying by remember { mutableStateOf(false) }
-    var currentPosition by remember { mutableStateOf(0Long) }
-    var totalDuration by remember { mutableStateOf(0Long) }
+    var currentPosition by remember { mutableStateOf(0L) }
+    var totalDuration by remember { mutableStateOf(0L) }
     var playSpeed by remember { mutableStateOf(1.0f) }
 
     // Initialize ExoPlayer correctly
@@ -308,12 +308,12 @@ fun CustomPlayer(
                 ) {
                     // Progress Slider
                     Slider(
-                        value = if (totalDuration > 0) currentPosition.toFloat() else 0f,
+                        value = if (totalDuration > 0L) currentPosition.toFloat() else 0f,
                         onValueChange = { targetPosition ->
                             exoPlayer.seekTo(targetPosition.toLong())
                             currentPosition = targetPosition.toLong()
                         },
-                        valueRange = 0f..(if (totalDuration > 0) totalDuration.toFloat() else 100f),
+                        valueRange = 0f..(if (totalDuration > 0L) totalDuration.toFloat() else 100f),
                         colors = SliderDefaults.colors(
                             thumbColor = ElectricTeal,
                             activeTrackColor = ElectricTeal,
