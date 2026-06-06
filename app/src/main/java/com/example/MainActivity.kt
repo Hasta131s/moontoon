@@ -39,6 +39,9 @@ import com.example.ui.screens.*
 import com.example.ui.theme.*
 import com.example.ui.viewmodel.CartoonViewModel
 
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -52,8 +55,23 @@ class MainActivity : ComponentActivity() {
         }
 
         setContent {
+            val app = application
             MyApplicationTheme {
-                val viewModel: CartoonViewModel = viewModel()
+                val viewModel: CartoonViewModel = viewModel(
+                    factory = object : ViewModelProvider.Factory {
+                        @Suppress("UNCHECKED_CAST")
+                        override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                            try {
+                                return CartoonViewModel(app) as T
+                            } catch (e: Throwable) {
+                                val sw = java.io.StringWriter()
+                                e.printStackTrace(java.io.PrintWriter(sw))
+                                val stackStr = sw.toString()
+                                throw RuntimeException("DETAILED_CRASH: $stackStr", e)
+                            }
+                        }
+                    }
+                )
                 val isAppLoading by viewModel.isAppLoading.collectAsStateWithLifecycle()
 
                 if (isAppLoading) {
