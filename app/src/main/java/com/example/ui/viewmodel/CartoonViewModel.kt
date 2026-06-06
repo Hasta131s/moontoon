@@ -23,7 +23,7 @@ import java.util.UUID
 class CartoonViewModel(application: Application) : AndroidViewModel(application) {
 
     private val db = MoonToonDatabase.getDatabase(application)
-    private val repository = CartoonRepository(db.moonToonDao())
+    private val repository = CartoonRepository(db.moonToonDao(), application)
 
     // --- State Streams ---
     val profiles = repository.allProfiles
@@ -369,15 +369,13 @@ class CartoonViewModel(application: Application) : AndroidViewModel(application)
     }
 
     // --- Notification System (+40 cartoon quotes invitations) ---
-    private val notificationChannelId = "moontoon_notifications"
-
     private fun createNotificationChannel() {
         try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 val name = "MoonToon Eğlenceli Bildirimler"
                 val descriptionText = "Youtuber Necati, Necati, Gumball ve sevimli karakterlerden davetler!"
                 val importance = NotificationManager.IMPORTANCE_DEFAULT
-                val channel = NotificationChannel(notificationChannelId, name, importance).apply {
+                val channel = NotificationChannel("moontoon_notifications", name, importance).apply {
                     description = descriptionText
                 }
                 val notificationManager: NotificationManager =
@@ -451,7 +449,7 @@ class CartoonViewModel(application: Application) : AndroidViewModel(application)
                 PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
             )
 
-            val builder = NotificationCompat.Builder(context, notificationChannelId)
+            val builder = NotificationCompat.Builder(context, "moontoon_notifications")
                 .setSmallIcon(android.R.drawable.presence_video_online) // premium feel default icon
                 .setContentTitle("MoonToon Daveti 🚀")
                 .setContentText(randomInvite)

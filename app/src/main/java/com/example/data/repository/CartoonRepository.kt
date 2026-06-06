@@ -9,10 +9,11 @@ import kotlinx.coroutines.flow.flow
 
 class CartoonRepository(
     private val moonToonDao: MoonToonDao,
+    private val context: android.content.Context,
     private val omdbService: OmdbService = OmdbService.create()
 ) {
     // Curated cartoons static list
-    fun getCuratedShows(): List<CartoonShow> = CartoonData.getShows()
+    fun getCuratedShows(): List<CartoonShow> = CartoonData.getShows(context)
 
     // Fetch details dynamically from OMDB API
     suspend fun fetchShowDetails(title: String): OmdbResponse {
