@@ -26,9 +26,14 @@ class CartoonViewModel(application: Application) : AndroidViewModel(application)
     private val repository = CartoonRepository(db.moonToonDao())
 
     // --- State Streams ---
-    val profiles = repository.allProfiles.stateIn(
-        viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList()
-    )
+    val profiles = repository.allProfiles
+        .catch { e ->
+            e.printStackTrace()
+            emit(UserProfile.defaultProfiles())
+        }
+        .stateIn(
+            viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList()
+        )
 
     private val _currentProfile = MutableStateFlow<UserProfile?>(null)
     val currentProfile = _currentProfile.asStateFlow()
@@ -54,17 +59,26 @@ class CartoonViewModel(application: Application) : AndroidViewModel(application)
     // Database relations dependent on current profile
     val favorites = _currentProfile.flatMapLatest { profile ->
         if (profile == null) flowOf(emptyList())
-        else repository.getFavoritesForProfile(profile.id)
+        else repository.getFavoritesForProfile(profile.id).catch { emit(emptyList()) }
+    }.catch { e ->
+        e.printStackTrace()
+        emit(emptyList())
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     val watchHistory = _currentProfile.flatMapLatest { profile ->
         if (profile == null) flowOf(emptyList())
-        else repository.getWatchHistory(profile.id)
+        else repository.getWatchHistory(profile.id).catch { emit(emptyList()) }
+    }.catch { e ->
+        e.printStackTrace()
+        emit(emptyList())
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     val downloads = _currentProfile.flatMapLatest { profile ->
         if (profile == null) flowOf(emptyList())
-        else repository.getDownloadsForProfile(profile.id)
+        else repository.getDownloadsForProfile(profile.id).catch { emit(emptyList()) }
+    }.catch { e ->
+        e.printStackTrace()
+        emit(emptyList())
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     // UI Pad Lock State for Kid Mode protection
@@ -108,23 +122,42 @@ class CartoonViewModel(application: Application) : AndroidViewModel(application)
             }
         }
         list
+    }.catch { e ->
+        e.printStackTrace()
+        emit(emptyList())
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     init {
         viewModelScope.launch {
-            _isAppLoading.value = true
-            repository.seedProfilesIfNeeded()
-            // Load base list of shows
-            _showsList.value = repository.getCuratedShows()
-            delay(1200) // Beautiful cinematic entry animation timer
-            // Select default profile
-            val initialProfiles = repository.allProfiles.first()
-            if (initialProfiles.isNotEmpty()) {
-                _currentProfile.value = initialProfiles.first()
+            try {
+                _isAppLoading.value = true
+                repository.seedProfilesIfNeeded()
+                // Load base list of shows
+                _showsList.value = repository.getCuratedShows()
+                delay(1200) // Beautiful cinematic entry animation timer
+                // Select default profile
+                val initialProfiles = repository.allProfiles.first()
+                if (initialProfiles.isNotEmpty()) {
+                    _currentProfile.value = initialProfiles.first()
+                }
+            } catch (e: Throwable) {
+                e.printStackTrace()
+                // Fallback default profile if anything crashes
+                _currentProfile.value = UserProfile(id = 1, name = "Ziyaretçi", avatarUrl = "profile_adult", isKidsMode = false)
+            } finally {
+                _isAppLoading.value = false
             }
-            _isAppLoading.value = false
         }
-        createNotificationChannel()
+        try {
+            createNotificationChannel()
+        } catch (e: Throwable) {
+            e.printStackTrace()
+        }
+    }
+
+    // --- Curated Base List ---
+    fun getBaseShowsList(): List<CartoonShow> {
+        return _showsList.value.ifEmpty { repository.getCuratedShows() }
     }
 
     // --- Category Management ---
@@ -166,6 +199,12 @@ class CartoonViewModel(application: Application) : AndroidViewModel(application)
             _selectedShow.value = null
             _activeEpisode.value = null
         }
+    }
+
+    fun logout() {
+        _currentProfile.value = null
+        _selectedShow.value = null
+        _activeEpisode.value = null
     }
 
     fun deleteProfile(profile: UserProfile) {
@@ -333,96 +372,104 @@ class CartoonViewModel(application: Application) : AndroidViewModel(application)
     private val notificationChannelId = "moontoon_notifications"
 
     private fun createNotificationChannel() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val name = "MoonToon Eğlenceli Bildirimler"
-            val descriptionText = "Youtuber Necati, Necati, Gumball ve sevimli karakterlerden davetler!"
-            val importance = NotificationManager.IMPORTANCE_DEFAULT
-            val channel = NotificationChannel(notificationChannelId, name, importance).apply {
-                description = descriptionText
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                val name = "MoonToon Eğlenceli Bildirimler"
+                val descriptionText = "Youtuber Necati, Necati, Gumball ve sevimli karakterlerden davetler!"
+                val importance = NotificationManager.IMPORTANCE_DEFAULT
+                val channel = NotificationChannel(notificationChannelId, name, importance).apply {
+                    description = descriptionText
+                }
+                val notificationManager: NotificationManager =
+                    getApplication<Application>().getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+                notificationManager.createNotificationChannel(channel)
             }
-            val notificationManager: NotificationManager =
-                getApplication<Application>().getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-            notificationManager.createNotificationChannel(channel)
+        } catch (e: Throwable) {
+            e.printStackTrace()
         }
     }
 
     fun triggerRandomSystemNotification() {
-        val context = getApplication<Application>()
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            // Check permission: in Android 13+ we request notification permission, but for maximum robustness,
-            // we will build matching fallback list in UI and post if allowed. Or we post and trigger inside system.
-        }
-
-        val inviteQuotes = listOf(
-            "Fil Necati: Moritanya'dan özel dürüm geldi, MoonToon'da dürümleri yiyip Gumball izliyoruz, koş! 🌯📺",
-            "Gumball: Okulda ders kaynatmak bir sanattır, ama MoonToon'da çizgi dizi izlemek bir yaşam tarzıdır! 🎓🐾",
-            "Darwin: Gumball yine bir işler peşinde ve bu sefer bir balık olarak bacaklarım titriyor! İzle! 🐟👣",
-            "Aslan Remzi: Necati televizyonun kumandasını yedi! Şakir yardım et, MoonToon'da yeni bölüm başlamış! 🦁📺",
-            "Mojo Jojo: Townsville'i yok etmek için harika bir planım vardı fakat MoonToon'da Powerpuff Girls başladı! 🐵🔬",
-            "Johnny Bravo: Hey tatlı bebek! Şunları görüyor musun? MoonToon'da kaslarımı sergiliyorum, kaçırma! 😎💪",
-            "Steve Amca: GÜNAYDIN! Karavanımla MoonToon ülkesine geldim, her şey çok acayip! 🍕🚘",
-            "Finn & Jake: Macera zamanı! Jake kılıç şeklini aldı, m3u8 dalgalarını kesmeye hazırız! ⚔️🐕",
-            "Ben 10: Omnitrix yine yanlış uzaylıyı seçti! Şimşek Hız olmak yerine MoonToon izlemeye karar verdim! 👽⌚",
-            "Şakir: Necati Abi bilgisayarın içine kaçtı, onu kurtarmak için tıklamanız gerekiyor! 🎮🖥️",
-            "Mordecai & Rigby: Hey ahbap! Benson bizi işten atmadan önce son bir bölüm MoonToon izleyeli mi? 🐦🦝",
-            "Kas Adam: Bu dünyadaki en komik MoonToon şakasını kim yapar biliyor musun? ANNEM! 👩💥",
-            "Raven: Karanlık odamda kitap okumaktan sıkıldım. MoonToon izleyip dünyayı kurtaracağız. 💜🔮",
-            "Clarence: Sumo kaktüse sarıldı! Jeff hijyen krizi geçiriyor! Bu çılgınlığı izlemelisin! 🌵👦",
-            "44 Kedi - Lampo: Gitarımı buldum, kedi grubu toplandı! Konser MoonToon'da başlıyor! 🐱🎸",
-            "Winx Club - Bloom: Alfea okulu bu hafta tatil! Winx perileri MoonToon'da parti yapıyor! 🧚‍♀️💖",
-            "Fil Necati: Hayat bir dürümdür, dürümleri yemeyen üzgündür. MoonToon'da dürüm şenliği başladı! 🐘🌯",
-            "Angela: Sınıfın en büyük planını yaptım! Bu planı bozmamak için hemen uygulamaya gir! 🎒🤓",
-            "Masha: Koca Ayı uyuyor! Onu uyandırmadan MoonToon'da gizlice macera izleyelim! 👧🐻",
-            "Ninjago - Kai: Spinjitzu gücünü sergiliyoruz! Ejderhaya binip MoonToon izle! 🐉🔥",
-            "Unikitty: Dünyada üzcü şeylere yer yok! Her yer gökkuşağı ve MoonToon pembeliği! 🦄🌈",
-            "Patron Bebek: Toplantı iptal! MoonToon'da süt şişeleriyle yeni çizgi dizi izliyoruz! 👶🍼",
-            "Dexter: Dee Dee laboratuvarımı patlattı! MoonToon'da kendime yeni bir sığınak kurdum. 🔬🧪",
-            "Kral Şakir - Kürdan Şakir: Canan yine çok bilmişlik yapıyor, Necati Abi ise uzağa fırladı! 🐾☄️",
-            "Johnny Test: Dukey konuşmaya başladı! Laboratuvarda zamanı durduran saati bulduk! 🐕💡",
-            "Kamp Lazlo: Salyangoz festivalini kim kaçırır? Barbunya Kampı MoonToon'da yayında! 🏕️🌲",
-            "Cesur Prens Ivandoe: Ben dünyanın en cesur geyiğiyim! Sadık yaverim Bert bana MoonToon açtı! 🦌🛡️",
-            "Gormiti: Elementlerin gücü adına! Meka Şövalyesi Kyonos MoonToon'da savaşa hazır! ❄️🛡️",
-            "Ben 10 - Gri Madde: Akıllı olmak zordur ama MoonToon'dan m3u8 izlemek çok pratiktir! 🧠🧬",
-            "Fil Necati: Dünyayı gezdim dolaştım, MoonToon'un minimalist ve şık tasarımı kadar güzel dürüm görmedim! 🪐🌯",
-            "Gumball - Anais: Gumball ve Darwin yine benden gizli plan yapıyor. Onları MoonToon'da izliyorum! 🐰🧐",
-            "Regular Show - Benson: Mordecai, Rigby! MoonToon'u kapatıp hemen parktaki yaprakları süpürün! yoksa KOVULDUNUZ! 😡🧹",
-            "Teen Titans - Beast Boy: Turta festivaline davetlisiniz! MoonToon'da turta yemeye geldik! 🥧🍕",
-            "We Bare Bears - Panda: Telefonumun şarjı bitiyor ama MoonToon'daki yeni bölümü bitirmeden bırakmam! 🐼📱",
-            "Fil Necati: Kürdan Şakir! Kadriye Hanıma söyle bize MoonToon'dan Gumball açsın, çorba soğuyor! 🥣🐾",
-            "Masha: Koca Ayı, bana MoonToon aç, yoksa her yeri dağıtırım ki! 👧🐻💥",
-            "Powerpuff - Buttercup: Ne cici bici kızlar mı? Hayır, biz Townsville'i sallıyoruz, MoonToon'dayız! 💥👊",
-            "Johnny Bravo: Hey şatık, bu akşam ne kadar havalıyım? MoonToon'da kendimi izliyorum. 😎🌟",
-            "Adalar Canavarı Flapjack: Nane Şekeri Adası'na gidiyoruz, MoonToon fıçılarını hazırla! 🍬🛶",
-            "Kamp Lazlo - Lumpus: Barbunya Kampı'nın en lüks kasedini açtım! MoonToon'da toplanın! 🦌🏕️",
-            "Kral Şakir - Necati: Kankametreyle Şakir'i test ettim, kankalık puanı MoonToon izleyince 100 oldu! 🐘🎯"
-        )
-
-        val randomInvite = inviteQuotes.random()
-
-        val intent = Intent(context, MainActivity::class.java).apply {
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-        }
-        val pendingIntent: PendingIntent = PendingIntent.getActivity(
-            context, 0, intent,
-            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
-        )
-
-        val builder = NotificationCompat.Builder(context, notificationChannelId)
-            .setSmallIcon(android.R.drawable.presence_video_online) // premium feel default icon
-            .setContentTitle("MoonToon Daveti 🚀")
-            .setContentText(randomInvite)
-            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
-            .setContentIntent(pendingIntent)
-            .setStyle(NotificationCompat.BigTextStyle().bigText(randomInvite))
-            .setAutoCancel(true)
-
-        with(NotificationManagerCompat.from(context)) {
-            try {
-                notify(System.currentTimeMillis().toInt(), builder.build())
-            } catch (e: SecurityException) {
-                // Permission not granted on 13+ (we'll show on-screen Toast or dialog in-app)
-                e.printStackTrace()
+        try {
+            val context = getApplication<Application>()
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                // Check permission: in Android 13+ we request notification permission, but for maximum robustness,
+                // we will build matching fallback list in UI and post if allowed. Or we post and trigger inside system.
             }
+
+            val inviteQuotes = listOf(
+                "Fil Necati: Moritanya'dan özel dürüm geldi, MoonToon'da dürümleri yiyip Gumball izliyoruz, koş! 🌯📺",
+                "Gumball: Okulda ders kaynatmak bir sanattır, ama MoonToon'da çizgi dizi izlemek bir yaşam tarzıdır! 🎓🐾",
+                "Darwin: Gumball yine bir işler peşinde ve bu sefer bir balık olarak bacaklarım titriyor! Izle! 🐟👣",
+                "Aslan Remzi: Necati televizyonun kumandasını yedi! Şakir yardım et, MoonToon'da yeni bölüm başlamış! 🦁📺",
+                "Mojo Jojo: Townsville'i yok etmek için harika bir planım vardı fakat MoonToon'da Powerpuff Girls başladı! 🐵🔬",
+                "Johnny Bravo: Hey tatlı bebek! Şunları görüyor musun? MoonToon'da kaslarımı sergiliyorum, kaçırma! 😎💪",
+                "Steve Amca: GÜNAYDIN! Karavanımla MoonToon ülkesine geldim, her şey çok acayip! 🍕🚘",
+                "Finn & Jake: Macera zamanı! Jake kılıç şeklini aldı, m3u8 dalgalarını kesmeye hazırız! ⚔️🐕",
+                "Ben 10: Omnitrix yine yanlış uzaylıyı seçti! Şimşek Hız olmak yerine MoonToon izlemeye karar verdim! 👽⌚",
+                "Şakir: Necati Abi bilgisayarın içine kaçtı, onu kurtarmak için tıklamanız gerekiyor! 🎮🖥️",
+                "Mordecai & Rigby: Hey ahbap! Benson bizi işten atmadan önce son bir bölüm MoonToon izleyeli mi? 🐦🦝",
+                "Kas Adam: Bu dünyadaki en komik MoonToon şakasını kim yapar biliyor musun? ANNEM! 👩💥",
+                "Raven: Karanlık odamda kitap okumaktan sıkıldım. MoonToon izleyip dünyayı kurtaracağız. 💜🔮",
+                "Clarence: Sumo kaktüse sarıldı! Jeff hijyen krizi geçiriyor! Bu çılgınlığı izlemelisin! 🌵👦",
+                "44 Kedi - Lampo: Gitarımı buldum, kedi grubu toplandı! Konser MoonToon'da başlıyor! 🐱🎸",
+                "Winx Club - Bloom: Alfea okulu bu hafta tatil! Winx perileri MoonToon'da parti yapıyor! 🧚‍♀️💖",
+                "Fil Necati: Hayat bir dürümdür, dürümleri yemeyen üzgündür. MoonToon'da dürüm şenliği başladı! 🐘🌯",
+                "Angela: Sınıfın en büyük planını yaptım! Bu planı bozmamak için hemen uygulamaya gir! 🎒🤓",
+                "Masha: Koca Ayı uyuyor! Onu uyandırmadan MoonToon'da gizlice macera izleyelim! 👧🐻",
+                "Ninjago - Kai: Spinjitzu gücünü sergiliyoruz! Ejderhaya binip MoonToon izle! 🐉🔥",
+                "Unikitty: Dünyada üzcü şeylere yer yok! Her yer gökkuşağı ve MoonToon pembeliği! 🦄🌈",
+                "Patron Bebek: Toplantı iptal! MoonToon'da süt şişeleriyle yeni çizgi dizi izliyoruz! 👶🍼",
+                "Dexter: Dee Dee laboratuvarımı patlattı! MoonToon'da kendime yeni bir sığınak kurdum. 🔬🧪",
+                "Kral Şakir - Kürdan Şakir: Canan yine çok bilmişlik yapıyor, Necati Abi ise uzağa fırladı! 🐾☄️",
+                "Johnny Test: Dukey konuşmaya başladı! Laboratuvarda zamanı durduran saati bulduk! 🐕💡",
+                "Kamp Lazlo: Salyangoz festivalini kim kaçırır? Barbunya Kampı MoonToon'da yayında! 🏕️🌲",
+                "Cesur Prens Ivandoe: Ben dünyanın en cesur geyiğiyim! Sadık yaverim Bert bana MoonToon açtı! 🦌🛡️",
+                "Gormiti: Elementlerin gücü adına! Meka Şövalyesi Kyonos MoonToon'da savaşa hazır! ❄️🛡️",
+                "Ben 10 - Gri Madde: Akıllı olmak zordur ama MoonToon'dan m3u8 izlemek çok pratiktir! 🧠🧬",
+                "Fil Necati: Dünyayı gezdim dolaştım, MoonToon'un minimalist ve şık tasarımı kadar güzel dürüm görmedim! 🪐🌯",
+                "Gumball - Anais: Gumball ve Darwin yine benden gizli plan yapıyor. Onları MoonToon'da izliyorum! 🐰🧐",
+                "Regular Show - Benson: Mordecai, Rigby! MoonToon'u kapatıp hemen parktaki yaprakları süpürün! yoksa KOVULDUNUZ! 😡🧹",
+                "Teen Titans - Beast Boy: Turta festivaline davetlisiniz! MoonToon'da turta yemeye geldik! 🥧🍕",
+                "We Bare Bears - Panda: Telefonumun şarjı bitiyor ama MoonToon'daki yeni bölümü bitirmeden bırakmam! 🐼📱",
+                "Fil Necati: Kürdan Şakir! Kadriye Hanıma söyle bize MoonToon'dan Gumball açsın, çorba soğuyor! 🥣🐾",
+                "Masha: Koca Ayı, bana MoonToon aç, yoksa her yeri dağıtırım ki! 👧🐻💥",
+                "Powerpuff - Buttercup: Ne cici bici kızlar mı? Hayır, biz Townsville'i sallıyoruz, MoonToon'dayız! 💥👊",
+                "Johnny Bravo: Hey şatık, bu akşam ne kadar havalıyım? MoonToon'da kendimi izliyorum. 😎🌟",
+                "Adalar Canavarı Flapjack: Nane Şekeri Adası'na gidiyoruz, MoonToon fıçılarını hazırla! 🍬🛶",
+                "Kamp Lazlo - Lumpus: Barbunya Kampı'nın en lüks kasedini açtım! MoonToon'da toplanın! 🦌🏕️",
+                "Kral Şakir - Necati: Kankametreyle Şakir'i test ettim, kankalık puanı MoonToon izleyince 100 oldu! 🐘🎯"
+            )
+
+            val randomInvite = inviteQuotes.random()
+
+            val intent = Intent(context, MainActivity::class.java).apply {
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            }
+            val pendingIntent: PendingIntent = PendingIntent.getActivity(
+                context, 0, intent,
+                PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+            )
+
+            val builder = NotificationCompat.Builder(context, notificationChannelId)
+                .setSmallIcon(android.R.drawable.presence_video_online) // premium feel default icon
+                .setContentTitle("MoonToon Daveti 🚀")
+                .setContentText(randomInvite)
+                .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+                .setContentIntent(pendingIntent)
+                .setStyle(NotificationCompat.BigTextStyle().bigText(randomInvite))
+                .setAutoCancel(true)
+
+            with(NotificationManagerCompat.from(context)) {
+                try {
+                    notify(System.currentTimeMillis().toInt(), builder.build())
+                } catch (e: SecurityException) {
+                    // Permission not granted on 13+ (we'll show on-screen Toast or dialog in-app)
+                    e.printStackTrace()
+                }
+            }
+        } catch (e: Throwable) {
+            e.printStackTrace()
         }
     }
 }

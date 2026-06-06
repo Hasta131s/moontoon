@@ -107,7 +107,7 @@ fun AppContent(viewModel: CartoonViewModel) {
     val context = LocalContext.current
 
     // Base Shows lists for Hero highlights
-    val baseShowsList = remember<List<CartoonShow>> { viewModel.getShowsList() ?: emptyList() } // fallback matching list
+    val baseShowsList = remember<List<CartoonShow>> { viewModel.getBaseShowsList() }
 
     // --- Pad Lock dialog trigger ---
     if (isPinScreenActive && currentProfile != null) {
@@ -229,7 +229,7 @@ fun AppContent(viewModel: CartoonViewModel) {
                         onUpdatePin = { p -> viewModel.updateProfilePin(currentProfile!!.id, p) },
                         onLogout = {
                             // Logout profile, returns to landing profile portal
-                            viewModel.switchProfile(UserProfile(id = -1, name = "", avatarUrl = ""))
+                            viewModel.logout()
                         }
                     )
                 }
@@ -505,13 +505,4 @@ fun BottomBarNavigation(
     }
 }
 
-// Extension to retrieve the full static shows list from viewmodel securely
-private fun CartoonViewModel.getShowsList(): List<CartoonShow>? {
-    return try {
-        val fields = this::class.java.getDeclaredField("_showsList").apply { isAccessible = true }
-        (fields.get(this) as kotlinx.coroutines.flow.MutableStateFlow<*>).value as? List<CartoonShow>
-    } catch (e: Exception) {
-        // Fallback default list construction
-        com.example.data.model.CartoonData.getShows()
-    }
-}
+
