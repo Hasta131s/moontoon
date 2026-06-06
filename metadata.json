@@ -1,0 +1,6 @@
+{
+  "name": "MoonToon",
+  "description": "Minimalist ve şık Disney Plus tarzı çizgi film ve çizgi dizi izleme platformu.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
